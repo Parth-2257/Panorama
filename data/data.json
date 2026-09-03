@@ -1,0 +1,125 @@
+{
+  "departments": [
+    {
+      "id": 1,
+      "name": "Computer Science and Engineering",
+      "code": "CSE",
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Information Technology",
+      "code": "IT",
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Electronics and Communication Engineering",
+      "code": "ECE",
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    }
+  ],
+  "academicYears": [
+    {
+      "id": 1,
+      "yearLabel": "2023-2024",
+      "isActive": true,
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "yearLabel": "2024-2025",
+      "isActive": true,
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "passwordHash": "admin123",
+      "fullName": "System Administrator",
+      "role": "ADMIN",
+      "departmentId": null,
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "username": "cse_head",
+      "passwordHash": "cse123",
+      "fullName": "Dr. Jane Doe",
+      "role": "DEPARTMENT_USER",
+      "departmentId": 1,
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "username": "it_head",
+      "passwordHash": "it123",
+      "fullName": "Dr. John Smith",
+      "role": "DEPARTMENT_USER",
+      "departmentId": 2,
+      "createdAt": "2026-09-03T10:00:00.000Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": 1,
+      "departmentId": 1,
+      "academicYearId": 1,
+      "status": "DRAFT",
+      "feedback": null,
+      "submittedAt": null,
+      "createdBy": 2,
+      "createdAt": "2026-09-03T10:00:00.000Z",
+      "updatedAt": "2026-09-03T10:00:00.000Z"
+    }
+  ],
+  "reportSections": [
+    {
+      "id": 1,
+      "reportId": 1,
+      "sectionName": "students",
+      "sectionData": {
+        "totalEnrolled": 480,
+        "intake": 120,
+        "passPercentage": 96.5
+      },
+      "updatedAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "reportId": 1,
+      "sectionName": "faculty",
+      "sectionData": {
+        "totalFaculty": 28,
+        "phdHolders": 18,
+        "studentFacultyRatio": "17:1"
+      },
+      "updatedAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 3,
+      "reportId": 1,
+      "sectionName": "researchPapers",
+      "sectionData": {
+        "journalPublications": 15,
+        "conferencePapers": 22,
+        "scopusIndexed": 12
+      },
+      "updatedAt": "2026-09-03T10:00:00.000Z"
+    },
+    {
+      "id": 4,
+      "reportId": 1,
+      "sectionName": "placements",
+      "sectionData": {
+        "eligibleStudents": 115,
+        "placedStudents": 108,
+        "highestPackageLpa": 32.5,
+        "avgPackageLpa": 9.2
+      },
+      "updatedAt": "2026-09-03T10:00:00.000Z"
+    }
+  ]
+}
