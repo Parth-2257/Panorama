@@ -1,4 +1,4 @@
-const { readData, writeData } = require('./storage');
+const { readData, writeData, getCollection, findById, findWhere } = require('./storage');
 
 /**
  * Storage Persistence Verification Test
@@ -50,8 +50,23 @@ async function testStoragePersistence() {
   
   const finalData = await readData();
   console.log(`  ✓ Clean-up verified. Final departments count: ${finalData.departments.length}`);
+
+  // Step 6: Verify helper queries
+  console.log('\n[Step 6] Testing collection query helpers...');
+  const depts = await getCollection('departments');
+  const cseDept = await findById('departments', 1);
+  const adminUsers = await findWhere('users', 'role', 'ADMIN');
+
+  if (depts.length > 0 && cseDept?.code === 'CSE' && adminUsers.length >= 1) {
+    console.log('  ✓ Query helpers (getCollection, findById, findWhere) working as expected.');
+  } else {
+    console.error('  ❌ Query helpers verification failed.');
+    process.exitCode = 1;
+    return;
+  }
+
   console.log('\n====================================================');
-  console.log('✓ All JSON Storage Persistence Tests PASSED!');
+  console.log('✓ All JSON Storage Persistence & Helper Tests PASSED!');
   console.log('====================================================\n');
 }
 

@@ -52,3 +52,6 @@ npm run test:storage
 * `readData()`: Reads and returns the complete application state object from `data/data.json`. Automatically initializes the file with default seed data if it does not exist.
 * `writeData(data)`: Serializes and writes the data object back to `data/data.json` with 2-space indentation for human readability.
 * `resetData()`: Resets `data/data.json` back to default seed data.
+* `getCollection(collectionName)`: Retrieves a top-level collection array asynchronously.
+* `findById(collectionName, id)`: Finds a single document by its primary `id`.
+* `findWhere(collectionName, predicateOrKey, value)`: Queries a collection using a predicate function or key-value pair match.

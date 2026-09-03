@@ -194,10 +194,49 @@ async function resetData() {
   return defaultData;
 }
 
+/**
+ * Gets a specific collection array from the dataset.
+ * @param {string} collectionName
+ * @returns {Promise<Array>}
+ */
+async function getCollection(collectionName) {
+  const data = await readData();
+  return Array.isArray(data[collectionName]) ? data[collectionName] : [];
+}
+
+/**
+ * Finds a single item by id in a collection.
+ * @param {string} collectionName
+ * @param {number|string} id
+ * @returns {Promise<object|null>}
+ */
+async function findById(collectionName, id) {
+  const collection = await getCollection(collectionName);
+  return collection.find(item => item.id === id) || null;
+}
+
+/**
+ * Finds all items matching a filter function or property key/value.
+ * @param {string} collectionName
+ * @param {Function|string} predicateOrKey
+ * @param {*} [value]
+ * @returns {Promise<Array>}
+ */
+async function findWhere(collectionName, predicateOrKey, value) {
+  const collection = await getCollection(collectionName);
+  if (typeof predicateOrKey === 'function') {
+    return collection.filter(predicateOrKey);
+  }
+  return collection.filter(item => item[predicateOrKey] === value);
+}
+
 module.exports = {
   DATA_FILE_PATH,
   readData,
   writeData,
   getDefaultData,
   resetData,
+  getCollection,
+  findById,
+  findWhere,
 };
