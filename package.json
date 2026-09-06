@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test:storage": "node src/test-storage.js"
+    "test:storage": "node src/test-storage.js",
+    "test:auth": "node src/test-auth.js"
   },
   "keywords": [
     "cli",
