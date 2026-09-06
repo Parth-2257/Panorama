@@ -1,6 +1,7 @@
 const readline = require('readline/promises');
 const { stdin: input, stdout: output } = require('process');
 const { login } = require('./auth');
+const { createHeader, formatKeyValue } = require('./utils/formatters');
 
 /**
  * Prompts the user to press Enter before returning to menu.

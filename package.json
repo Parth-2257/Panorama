@@ -5,8 +5,10 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "test": "node src/test-storage.js && node src/test-auth.js && node src/test-formatters.js",
     "test:storage": "node src/test-storage.js",
-    "test:auth": "node src/test-auth.js"
+    "test:auth": "node src/test-auth.js",
+    "test:ui": "node src/test-formatters.js"
   },
   "keywords": [
     "cli",

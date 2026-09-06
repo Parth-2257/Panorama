@@ -67,9 +67,11 @@ npm start
 
 ### 2. Run Test Suites
 ```bash
-# Test authentication flow & edge cases
-npm run test:auth
+# Run complete test suite (storage, auth, ui)
+npm test
 
-# Test JSON storage read/write persistence
+# Run individual test suites
+npm run test:auth
 npm run test:storage
+npm run test:ui
 ```
