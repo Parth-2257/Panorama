@@ -2,56 +2,74 @@
 
 A lightweight, terminal-based Annual Report Portal for academic departments built with **Node.js** and **JSON file storage**.
 
-## Project Architecture (Phase 1)
+---
 
-* **Runtime:** Node.js (uses built-in `fs/promises` and `path` modules)
+## System Architecture
+
+* **Runtime:** Node.js (uses standard built-in modules `readline/promises`, `fs/promises`, and `path`)
 * **Storage Engine:** JSON File Storage (`data/data.json`)
 * **Dependencies:** Zero external production dependencies
-* **User Interface:** Terminal / CLI application
+* **User Interface:** Terminal / Interactive CLI application
 
 ---
 
-## Data Model Structure (`data/data.json`)
+## Authentication & Role-Based Access Control (Phase 2)
+
+Panorama supports two distinct user roles:
+
+1. **`ADMIN`**:
+   * Has access to the **Admin Dashboard**.
+   * Menu:
+     1. Review Reports
+     2. View/Manage Approved Reports
+     3. View Institute Data/Analytics
+     4. Customize Annual Report
+     5. Generate Final Report
+     6. Logout
+
+2. **`DEPARTMENT_USER`**:
+   * Bound to a specific department (e.g., Computer Science and Engineering).
+   * Has access to the **Department Dashboard**.
+   * Menu:
+     1. Create/View My Report
+     2. Edit Draft Report
+     3. Submit Report
+     4. View Feedback
+     5. Logout
+
+### Demo Login Credentials
+
+| Username | Password | Role | Department |
+| :--- | :--- | :--- | :--- |
+| `admin` | `admin123` | `ADMIN` | System-wide |
+| `cse_head` | `cse123` | `DEPARTMENT_USER` | Computer Science & Engineering (`CSE`) |
+| `it_head` | `it123` | `DEPARTMENT_USER` | Information Technology (`IT`) |
+
+---
+
+## Data Structure (`data/data.json`)
 
 The primary data store organizes data into 5 top-level collections:
-
-1. **`departments`**: Academic departments (`id`, `name`, `code`, `createdAt`).
-2. **`academicYears`**: Reporting cycles (`id`, `yearLabel`, `isActive`, `createdAt`).
-3. **`users`**: System user accounts (`id`, `username`, `passwordHash`, `fullName`, `role` (`ADMIN` | `DEPARTMENT_USER`), `departmentId`, `createdAt`).
-4. **`reports`**: Annual report submissions (`id`, `departmentId`, `academicYearId`, `status` (`DRAFT` | `SUBMITTED` | `APPROVED` | `REJECTED`), `feedback`, `submittedAt`, `createdBy`, `createdAt`, `updatedAt`).
-5. **`reportSections`**: Modular sections for each report (`id`, `reportId`, `sectionName`, `sectionData`, `updatedAt`).
+* `departments`: Academic departments (`id`, `name`, `code`, `createdAt`).
+* `academicYears`: Reporting cycles (`id`, `yearLabel`, `isActive`, `createdAt`).
+* `users`: User accounts (`id`, `username`, `passwordHash`, `fullName`, `role`, `departmentId`, `createdAt`).
+* `reports`: Report submissions (`id`, `departmentId`, `academicYearId`, `status`, `feedback`, `submittedAt`, `createdBy`).
+* `reportSections`: Modular report sections (`id`, `reportId`, `sectionName`, `sectionData`, `updatedAt`).
 
 ---
 
-## Getting Started
+## Running the Application
 
-### 1. Installation
-
-No database installation is required! Clone the repository and run:
-
-```bash
-npm install
-```
-
-### 2. Run the Application
-
+### 1. Start Interactive CLI
 ```bash
 npm start
 ```
 
-### 3. Run Storage Persistence Tests
-
+### 2. Run Test Suites
 ```bash
+# Test authentication flow & edge cases
+npm run test:auth
+
+# Test JSON storage read/write persistence
 npm run test:storage
 ```
-
----
-
-## Storage Module API (`src/storage.js`)
-
-* `readData()`: Reads and returns the complete application state object from `data/data.json`. Automatically initializes the file with default seed data if it does not exist.
-* `writeData(data)`: Serializes and writes the data object back to `data/data.json` with 2-space indentation for human readability.
-* `resetData()`: Resets `data/data.json` back to default seed data.
-* `getCollection(collectionName)`: Retrieves a top-level collection array asynchronously.
-* `findById(collectionName, id)`: Finds a single document by its primary `id`.
-* `findWhere(collectionName, predicateOrKey, value)`: Queries a collection using a predicate function or key-value pair match.
