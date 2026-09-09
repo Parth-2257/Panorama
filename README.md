@@ -9,47 +9,45 @@ A lightweight, terminal-based Annual Report Portal for academic departments buil
 * **Runtime:** Node.js (uses standard built-in modules `readline/promises`, `fs/promises`, and `path`)
 * **Storage Engine:** JSON File Storage (`data/data.json`)
 * **Dependencies:** Zero external production dependencies
-* **User Interface:** Terminal / Interactive CLI application
+* **User Interface:** Terminal / Interactive CLI application with formatted ASCII layouts
 
 ---
 
-## Authentication & Role-Based Access Control (Phase 2)
+## Roles & Core Workflows
 
-Panorama supports two distinct user roles:
+### 1. Department Head (`DEPARTMENT_USER`)
+* **View/Create Draft Report:** Auto-initializes departmental report for the active academic cycle.
+* **Modular Section Editor:** Edit metrics across 4 core dimensions:
+  * **Students:** Total enrolled, annual intake, pass percentage.
+  * **Faculty:** Total faculty, PhD holders count, student-faculty ratio.
+  * **Research Papers:** Journal publications, conference papers, Scopus-indexed counts.
+  * **Placements:** Eligible students, placed students, highest and average package (LPA).
+* **Validation & Submission:** Enforces complete population of all 4 required sections before submission.
+* **Review Feedback:** Track admin approvals, rejections, and review comments.
 
-1. **`ADMIN`**:
-   * Has access to the **Admin Dashboard**.
-   * Menu:
-     1. Review Reports
-     2. View/Manage Approved Reports
-     3. View Institute Data/Analytics
-     4. Customize Annual Report
-     5. Generate Final Report
-     6. Logout
+### 2. System Administrator (`ADMIN`)
+* **Review Submissions:** Inspect pending departmental reports, review section details, and approve or reject with written feedback.
+* **Institute Analytics Engine:** Real-time aggregation of:
+  * Total institute enrollment and annual intake.
+  * Total faculty and PhD qualifications.
+  * Total publication counts across departments.
+  * Overall placement rate (%), average LPA, and highest package.
+* **Consolidated Annual Report Generator:** Builds and prints clean summary reports for executive review.
 
-2. **`DEPARTMENT_USER`**:
-   * Bound to a specific department (e.g., Computer Science and Engineering).
-   * Has access to the **Department Dashboard**.
-   * Menu:
-     1. Create/View My Report
-     2. Edit Draft Report
-     3. Submit Report
-     4. View Feedback
-     5. Logout
+---
 
-### Demo Login Credentials
+## Demo Login Credentials
 
 | Username | Password | Role | Department |
 | :--- | :--- | :--- | :--- |
-| `admin` | `admin123` | `ADMIN` | System-wide |
+| `admin` | `admin123` | `ADMIN` | System Administrator |
 | `cse_head` | `cse123` | `DEPARTMENT_USER` | Computer Science & Engineering (`CSE`) |
 | `it_head` | `it123` | `DEPARTMENT_USER` | Information Technology (`IT`) |
 
 ---
 
-## Data Structure (`data/data.json`)
+## Data Model Structure (`data/data.json`)
 
-The primary data store organizes data into 5 top-level collections:
 * `departments`: Academic departments (`id`, `name`, `code`, `createdAt`).
 * `academicYears`: Reporting cycles (`id`, `yearLabel`, `isActive`, `createdAt`).
 * `users`: User accounts (`id`, `username`, `passwordHash`, `fullName`, `role`, `departmentId`, `createdAt`).
@@ -60,18 +58,20 @@ The primary data store organizes data into 5 top-level collections:
 
 ## Running the Application
 
-### 1. Start Interactive CLI
+### 1. Launch Interactive CLI
 ```bash
 npm start
 ```
 
-### 2. Run Test Suites
+### 2. Run Automated Test Suites
 ```bash
-# Run complete test suite (storage, auth, ui)
+# Run all automated tests (storage, auth, ui, reports, admin)
 npm test
 
 # Run individual test suites
-npm run test:auth
-npm run test:storage
-npm run test:ui
+npm run test:storage   # JSON file persistence & query helpers
+npm run test:auth      # Authentication & RBAC security
+npm run test:ui        # Terminal UI formatters
+npm run test:reports   # Report drafting, section editing & submission checks
+npm run test:admin     # Admin reviews & institute analytics aggregation
 ```
