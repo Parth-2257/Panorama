@@ -1,4 +1,8 @@
+const fs = require('fs').promises;
+const path = require('path');
 const { readData, writeData } = require('../storage');
+
+const REPORTS_DIR = path.join(__dirname, '..', '..', 'reports');
 
 /**
  * Retrieves all departmental reports along with related department, year, and author details.
@@ -243,11 +247,122 @@ async function saveReportCustomization(customizedSections) {
   };
 }
 
+/**
+ * Generates and saves the official Institute Annual Report for an academic year.
+ * Only includes data from APPROVED reports, formats according to saved customization,
+ * and writes to reports/annual-report-<yearLabel>.txt.
+ * @param {number} academicYearId
+ * @returns {Promise<{ success: boolean, message: string, fileName?: string, filePath?: string, reportContent?: string }>}
+ */
+async function generateFinalAnnualReport(academicYearId) {
+  const data = await readData();
+  const academicYear = data.academicYears.find((y) => y.id === academicYearId);
+
+  if (!academicYear) {
+    return { success: false, message: `Academic year with ID ${academicYearId} not found.` };
+  }
+
+  // 1. Get institute analytics (calculates metrics strictly from APPROVED reports)
+  const stats = await getInstituteAnalytics(academicYearId);
+
+  // 2. Validate that there is at least one approved report
+  if (stats.approvedReports === 0) {
+    return {
+      success: false,
+      message: 'No approved reports are available for this academic year. Final report cannot be generated.',
+    };
+  }
+
+  // 3. Get saved customization sections and filter for selected ones
+  const allCustomSections = await getReportCustomization();
+  const selectedSections = allCustomSections.filter((s) => s.selected);
+
+  // 4. Validate that at least one section is selected
+  if (selectedSections.length === 0) {
+    return {
+      success: false,
+      message: 'No report sections are currently selected. Customization required before generation.',
+    };
+  }
+
+  // Sort selected sections by order
+  selectedSections.sort((a, b) => a.order - b.order);
+
+  // 5. Build report text
+  const divider = '='.repeat(60);
+  const subDivider = '-'.repeat(60);
+  const lines = [];
+
+  lines.push(divider);
+  lines.push('INSTITUTE ANNUAL REPORT');
+  lines.push(`ACADEMIC YEAR: ${academicYear.yearLabel}`);
+  lines.push(divider);
+  lines.push(`Generated On: ${new Date().toLocaleString()}`);
+  lines.push(`Contributing Approved Department Reports: ${stats.approvedReports}`);
+  lines.push(divider);
+  lines.push('');
+
+  selectedSections.forEach((sec, idx) => {
+    const sectionNumber = idx + 1;
+    const title = `${sectionNumber}. ${sec.displayName.toUpperCase()}`;
+    lines.push(title);
+    lines.push(subDivider);
+
+    if (sec.sectionName === 'students') {
+      lines.push(`  • Total Enrolled Students : ${stats.students.totalEnrolled}`);
+      lines.push(`  • Annual Intake           : ${stats.students.totalIntake}`);
+    } else if (sec.sectionName === 'faculty') {
+      lines.push(`  • Total Faculty           : ${stats.faculty.totalFaculty}`);
+      lines.push(`  • PhD Holders             : ${stats.faculty.totalPhdHolders}`);
+    } else if (sec.sectionName === 'researchPapers') {
+      lines.push(`  • Journal Publications    : ${stats.research.journalPublications}`);
+      lines.push(`  • Conference Papers       : ${stats.research.conferencePapers}`);
+      lines.push(`  • Total Publications      : ${stats.research.totalPublications}`);
+      lines.push(`  • Scopus Indexed Papers   : ${stats.research.scopusIndexed}`);
+    } else if (sec.sectionName === 'placements') {
+      lines.push(`  • Eligible Students       : ${stats.placements.totalEligible}`);
+      lines.push(`  • Placed Students         : ${stats.placements.totalPlaced}`);
+      lines.push(`  • Placement Rate          : ${stats.placements.placementPercentage}%`);
+      lines.push(`  • Highest Package         : ${stats.placements.highestPackageLpa} LPA`);
+      lines.push(`  • Average Package         : ${stats.placements.avgPackageLpa} LPA`);
+    }
+
+    lines.push('');
+  });
+
+  lines.push(divider);
+  lines.push('END OF REPORT');
+  lines.push(divider);
+  lines.push('');
+
+  const reportContent = lines.join('\n');
+
+  // 6. Ensure reports directory exists
+  await fs.mkdir(REPORTS_DIR, { recursive: true });
+
+  // 7. Sanitize filename and write file
+  const sanitizedYear = academicYear.yearLabel.replace(/[\/\\]/g, '-');
+  const fileName = `annual-report-${sanitizedYear}.txt`;
+  const filePath = path.join(REPORTS_DIR, fileName);
+
+  await fs.writeFile(filePath, reportContent, 'utf8');
+
+  return {
+    success: true,
+    message: `Final Annual Report generated successfully.`,
+    fileName,
+    filePath,
+    reportContent,
+  };
+}
+
 module.exports = {
+  REPORTS_DIR,
   PREDEFINED_SECTIONS,
   getAllDepartmentReports,
   reviewReport,
   getInstituteAnalytics,
   getReportCustomization,
   saveReportCustomization,
+  generateFinalAnnualReport,
 };
