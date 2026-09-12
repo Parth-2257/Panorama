@@ -5,12 +5,13 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "node src/test-storage.js && node src/test-auth.js && node src/test-formatters.js && node src/test-reports.js && node src/test-admin.js",
+    "test": "node src/test-storage.js && node src/test-auth.js && node src/test-formatters.js && node src/test-reports.js && node src/test-admin.js && node src/test-customization.js",
     "test:storage": "node src/test-storage.js",
     "test:auth": "node src/test-auth.js",
     "test:ui": "node src/test-formatters.js",
     "test:reports": "node src/test-reports.js",
-    "test:admin": "node src/test-admin.js"
+    "test:admin": "node src/test-admin.js",
+    "test:customization": "node src/test-customization.js"
   },
   "keywords": [
     "cli",
