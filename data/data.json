@@ -121,5 +121,31 @@
       },
       "updatedAt": "2026-09-03T10:00:00.000Z"
     }
+  ],
+  "reportCustomization": [
+    {
+      "sectionName": "students",
+      "displayName": "Students",
+      "selected": true,
+      "order": 1
+    },
+    {
+      "sectionName": "faculty",
+      "displayName": "Faculty",
+      "selected": true,
+      "order": 2
+    },
+    {
+      "sectionName": "researchPapers",
+      "displayName": "Research Papers",
+      "selected": true,
+      "order": 3
+    },
+    {
+      "sectionName": "placements",
+      "displayName": "Placements",
+      "selected": true,
+      "order": 4
+    }
   ]
 }
