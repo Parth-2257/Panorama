@@ -69,9 +69,32 @@ async function reviewReport(reportId, status, feedback = '') {
  */
 async function getInstituteAnalytics(academicYearId) {
   const data = await readData();
-  const reports = data.reports.filter((r) => r.academicYearId === academicYearId);
-  const reportIds = reports.map((r) => r.id);
-  const sections = data.reportSections.filter((s) => reportIds.includes(s.reportId));
+  const allReports = data.reports.filter((r) => r.academicYearId === academicYearId);
+
+  // Filter only APPROVED reports, ensuring no duplicate department reports are counted
+  const seenDepartments = new Set();
+  const approvedReports = [];
+  for (const r of allReports) {
+    if (r.status === 'APPROVED' && !seenDepartments.has(r.departmentId)) {
+      seenDepartments.add(r.departmentId);
+      approvedReports.push(r);
+    }
+  }
+
+  const approvedReportIds = new Set(approvedReports.map((r) => r.id));
+
+  // Extract sections belonging only to approved reports, avoiding duplicate section entries
+  const seenSections = new Set();
+  const sections = [];
+  for (const s of data.reportSections) {
+    if (approvedReportIds.has(s.reportId)) {
+      const secKey = `${s.reportId}:${s.sectionName}`;
+      if (!seenSections.has(secKey)) {
+        seenSections.add(secKey);
+        sections.push(s);
+      }
+    }
+  }
 
   let totalEnrolled = 0;
   let totalIntake = 0;
@@ -120,10 +143,10 @@ async function getInstituteAnalytics(academicYearId) {
 
   return {
     academicYearId,
-    totalReports: reports.length,
-    approvedReports: reports.filter((r) => r.status === 'APPROVED').length,
-    submittedReports: reports.filter((r) => r.status === 'SUBMITTED').length,
-    draftReports: reports.filter((r) => r.status === 'DRAFT').length,
+    totalReports: allReports.length,
+    approvedReports: approvedReports.length,
+    submittedReports: allReports.filter((r) => r.status === 'SUBMITTED').length,
+    draftReports: allReports.filter((r) => r.status === 'DRAFT').length,
     students: {
       totalEnrolled,
       totalIntake,
