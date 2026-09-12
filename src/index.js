@@ -10,12 +10,14 @@ const {
   saveReportSection,
   submitReport,
 } = require('./services/reportService');
+const { getCollection } = require('./storage');
 const {
   getAllDepartmentReports,
   reviewReport,
   getInstituteAnalytics,
   getReportCustomization,
   saveReportCustomization,
+  generateFinalAnnualReport,
 } = require('./services/adminService');
 
 /**
@@ -322,6 +324,60 @@ async function handleCustomizeAnnualReport(rl) {
 }
 
 /**
+ * Interactive Final Annual Report Generation for Admin.
+ * @param {readline.Interface} rl
+ */
+async function handleGenerateFinalReport(rl) {
+  console.log('\n' + createHeader('GENERATE FINAL ANNUAL REPORT'));
+  const academicYears = await getCollection('academicYears');
+
+  if (academicYears.length === 0) {
+    console.log('\n❌ No academic years configured.');
+    return;
+  }
+
+  console.log('\nAvailable Academic Years:');
+  academicYears.forEach((year, idx) => {
+    const activeLabel = year.isActive ? ' (Active)' : '';
+    console.log(`  ${idx + 1}. Academic Year: ${year.yearLabel}${activeLabel}`);
+  });
+
+  const choiceInput = (
+    await rl.question(`\nSelect Academic Year (1-${academicYears.length}) or "cancel": `)
+  ).trim();
+
+  if (choiceInput.toLowerCase() === 'cancel') {
+    console.log('\nReport generation cancelled.');
+    return;
+  }
+
+  const choiceNum = parseInt(choiceInput, 10);
+  if (isNaN(choiceNum) || choiceNum < 1 || choiceNum > academicYears.length) {
+    console.log('\n❌ Invalid choice. Report generation cancelled.');
+    return;
+  }
+
+  const selectedYear = academicYears[choiceNum - 1];
+  console.log(`\nGenerating Annual Report for Academic Year ${selectedYear.yearLabel}...`);
+
+  const result = await generateFinalAnnualReport(selectedYear.id);
+
+  if (!result.success) {
+    console.log(`\n❌ ${result.message}`);
+    return;
+  }
+
+  console.log(`\n✓ ${result.message}`);
+  console.log(`  File Saved : ${result.fileName}`);
+  console.log(`  Path       : ${result.filePath}`);
+
+  console.log('\n' + '-'.repeat(60));
+  console.log('             REPORT PREVIEW             ');
+  console.log('-'.repeat(60));
+  console.log(result.reportContent);
+}
+
+/**
  * Displays the Admin Menu and handles option selection.
  * @param {readline.Interface} rl
  * @param {object} user - Active admin user object
@@ -335,7 +391,7 @@ async function showAdminDashboard(rl, user) {
     console.log('2. View Approved Reports');
     console.log('3. View Institute Analytics');
     console.log('4. Customize Annual Report');
-    console.log('5. Generate Consolidated Annual Report');
+    console.log('5. Generate Final Report');
     console.log('6. Logout');
     console.log('----------------------------------------------------');
 
@@ -412,22 +468,7 @@ async function showAdminDashboard(rl, user) {
         break;
       }
       case '5': {
-        const activeYear = await getActiveAcademicYear();
-        const stats = await getInstituteAnalytics(activeYear.id);
-        const reports = await getAllDepartmentReports(activeYear.id);
-
-        console.log('\n' + createHeader(`CONSOLIDATED ANNUAL REPORT - ${activeYear.yearLabel}`, 64));
-        console.log(`Generated on: ${new Date().toLocaleString()}`);
-        console.log('Total Contributing Departments: ' + reports.length);
-        console.log('Institute Enrollment: ' + stats.students.totalEnrolled);
-        console.log('Institute Faculty: ' + stats.faculty.totalFaculty);
-        console.log('Overall Placement Rate: ' + stats.placements.placementPercentage + '%');
-        console.log('Top Package: ' + stats.placements.highestPackageLpa + ' LPA');
-        console.log('----------------------------------------------------------------');
-        reports.forEach((r) => {
-          console.log(`• Department: ${r.department?.name} | Status: ${formatStatusBadge(r.status)}`);
-        });
-        console.log('================================================================');
+        await handleGenerateFinalReport(rl);
         await pause(rl);
         break;
       }
