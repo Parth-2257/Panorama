@@ -171,8 +171,83 @@ async function getInstituteAnalytics(academicYearId) {
   };
 }
 
+const PREDEFINED_SECTIONS = [
+  { sectionName: 'students', displayName: 'Students' },
+  { sectionName: 'faculty', displayName: 'Faculty' },
+  { sectionName: 'researchPapers', displayName: 'Research Papers' },
+  { sectionName: 'placements', displayName: 'Placements' },
+];
+
+/**
+ * Retrieves the annual report section customization.
+ * Returns the list of predefined sections with their selection state and order.
+ * @returns {Promise<Array<{ sectionName: string, displayName: string, selected: boolean, order: number }>>}
+ */
+async function getReportCustomization() {
+  const data = await readData();
+  const saved = Array.isArray(data.reportCustomization) ? data.reportCustomization : [];
+
+  const result = PREDEFINED_SECTIONS.map((predef, idx) => {
+    const existing = saved.find((s) => s.sectionName === predef.sectionName);
+    return {
+      sectionName: predef.sectionName,
+      displayName: predef.displayName,
+      selected: existing ? Boolean(existing.selected) : true,
+      order: existing && typeof existing.order === 'number' ? existing.order : idx + 1,
+    };
+  });
+
+  result.sort((a, b) => a.order - b.order);
+  return result;
+}
+
+/**
+ * Saves the annual report section customization to JSON storage.
+ * @param {Array<{ sectionName: string, displayName?: string, selected: boolean, order: number }>} customizedSections
+ * @returns {Promise<{ success: boolean, message: string, customization: Array }>}
+ */
+async function saveReportCustomization(customizedSections) {
+  if (!Array.isArray(customizedSections) || customizedSections.length === 0) {
+    return { success: false, message: 'Invalid customization payload. Must be a non-empty array.' };
+  }
+
+  const data = await readData();
+
+  const normalized = PREDEFINED_SECTIONS.map((predef, idx) => {
+    const found = customizedSections.find((c) => c.sectionName === predef.sectionName);
+    if (found) {
+      return {
+        sectionName: predef.sectionName,
+        displayName: predef.displayName,
+        selected: Boolean(found.selected),
+        order: typeof found.order === 'number' ? found.order : idx + 1,
+      };
+    }
+    return {
+      sectionName: predef.sectionName,
+      displayName: predef.displayName,
+      selected: false,
+      order: idx + 1,
+    };
+  });
+
+  normalized.sort((a, b) => a.order - b.order);
+
+  data.reportCustomization = normalized;
+  await writeData(data);
+
+  return {
+    success: true,
+    message: 'Annual report customization saved successfully.',
+    customization: normalized,
+  };
+}
+
 module.exports = {
+  PREDEFINED_SECTIONS,
   getAllDepartmentReports,
   reviewReport,
   getInstituteAnalytics,
+  getReportCustomization,
+  saveReportCustomization,
 };
