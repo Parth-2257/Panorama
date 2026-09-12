@@ -14,6 +14,8 @@ const {
   getAllDepartmentReports,
   reviewReport,
   getInstituteAnalytics,
+  getReportCustomization,
+  saveReportCustomization,
 } = require('./services/adminService');
 
 /**
@@ -211,6 +213,115 @@ async function showDepartmentDashboard(rl, user) {
 }
 
 /**
+ * Interactive Annual Report Section Customization for Admin.
+ * @param {readline.Interface} rl
+ */
+async function handleCustomizeAnnualReport(rl) {
+  console.log('\n' + createHeader('CUSTOMIZE ANNUAL REPORT SECTIONS'));
+  const currentSections = await getReportCustomization();
+
+  console.log('\nAvailable Sections:');
+  currentSections.forEach((sec, idx) => {
+    const status = sec.selected ? `[SELECTED - Order: ${sec.order}]` : '[EXCLUDED]';
+    console.log(`  ${idx + 1}. ${sec.displayName.padEnd(20, ' ')} ${status}`);
+  });
+
+  console.log('\n----------------------------------------------------');
+  console.log('Step 1: Choose sections to include');
+  console.log('Enter comma-separated numbers (e.g., 1, 2, 4), "all" to include all, or "cancel":');
+  const selectionInput = (await rl.question('Selection: ')).trim();
+
+  if (selectionInput.toLowerCase() === 'cancel') {
+    console.log('\nCustomization cancelled.');
+    return;
+  }
+
+  let selectedIndices = [];
+  if (!selectionInput || selectionInput.toLowerCase() === 'all') {
+    selectedIndices = currentSections.map((_, i) => i);
+  } else {
+    const parts = selectionInput.split(',').map((p) => parseInt(p.trim(), 10));
+    for (const p of parts) {
+      if (!isNaN(p) && p >= 1 && p <= currentSections.length) {
+        if (!selectedIndices.includes(p - 1)) {
+          selectedIndices.push(p - 1);
+        }
+      }
+    }
+  }
+
+  if (selectedIndices.length === 0) {
+    console.log('\n❌ No valid sections selected. Customization aborted.');
+    return;
+  }
+
+  console.log('\n----------------------------------------------------');
+  console.log('Step 2: Choose display order of selected sections');
+  const chosenList = selectedIndices.map((i) => currentSections[i]);
+  console.log('Selected sections:');
+  chosenList.forEach((s, idx) => {
+    console.log(`  ${idx + 1}. ${s.displayName}`);
+  });
+
+  console.log(
+    `\nEnter desired sequence using 1-${chosenList.length} (e.g., ${chosenList
+      .map((_, i) => chosenList.length - i)
+      .join(', ')}), or press Enter to keep current order:`
+  );
+  const orderInput = (await rl.question('Order: ')).trim();
+
+  let orderedChosen = [...chosenList];
+  if (orderInput) {
+    const orderParts = orderInput.split(/[,\s]+/).map((p) => parseInt(p.trim(), 10));
+    const validOrders = orderParts.filter((p) => !isNaN(p) && p >= 1 && p <= chosenList.length);
+    const uniqueOrders = [...new Set(validOrders)];
+
+    if (uniqueOrders.length === chosenList.length) {
+      orderedChosen = uniqueOrders.map((num) => chosenList[num - 1]);
+    } else {
+      console.log('\n⚠️ Order input did not specify all selected sections. Retaining default order.');
+    }
+  }
+
+  // Build full customization payload
+  const updatedCustomization = [];
+  // Add selected sections in their specified order (1..N)
+  orderedChosen.forEach((sec, idx) => {
+    updatedCustomization.push({
+      sectionName: sec.sectionName,
+      displayName: sec.displayName,
+      selected: true,
+      order: idx + 1,
+    });
+  });
+
+  // Add remaining unselected sections at the end with selected: false
+  let unselectedOrder = orderedChosen.length + 1;
+  currentSections.forEach((sec) => {
+    if (!orderedChosen.some((o) => o.sectionName === sec.sectionName)) {
+      updatedCustomization.push({
+        sectionName: sec.sectionName,
+        displayName: sec.displayName,
+        selected: false,
+        order: unselectedOrder++,
+      });
+    }
+  });
+
+  const res = await saveReportCustomization(updatedCustomization);
+  if (res.success) {
+    console.log(`\n✓ ${res.message}`);
+    console.log('\nUpdated Section Order:');
+    res.customization.forEach((sec) => {
+      const tag = sec.selected ? `[Order: ${sec.order}]` : '[EXCLUDED]';
+      console.log(`  • ${sec.displayName.padEnd(20, ' ')} : ${tag}`);
+    });
+  } else {
+    console.log(`\n❌ ${res.message}`);
+  }
+}
+
+/**
  * Displays the Admin Menu and handles option selection.
  * @param {readline.Interface} rl
  * @param {object} user - Active admin user object
@@ -223,11 +334,12 @@ async function showAdminDashboard(rl, user) {
     console.log('1. Review Submitted Reports');
     console.log('2. View Approved Reports');
     console.log('3. View Institute Analytics');
-    console.log('4. Generate Consolidated Annual Report');
-    console.log('5. Logout');
+    console.log('4. Customize Annual Report');
+    console.log('5. Generate Consolidated Annual Report');
+    console.log('6. Logout');
     console.log('----------------------------------------------------');
 
-    const choice = (await rl.question('Select an option (1-5): ')).trim();
+    const choice = (await rl.question('Select an option (1-6): ')).trim();
 
     switch (choice) {
       case '1': {
@@ -295,6 +407,11 @@ async function showAdminDashboard(rl, user) {
         break;
       }
       case '4': {
+        await handleCustomizeAnnualReport(rl);
+        await pause(rl);
+        break;
+      }
+      case '5': {
         const activeYear = await getActiveAcademicYear();
         const stats = await getInstituteAnalytics(activeYear.id);
         const reports = await getAllDepartmentReports(activeYear.id);
@@ -314,12 +431,12 @@ async function showAdminDashboard(rl, user) {
         await pause(rl);
         break;
       }
-      case '5':
+      case '6':
         console.log('\nLogging out...');
         inAdminMenu = false;
         break;
       default:
-        console.log('\n❌ Invalid option. Please enter a number between 1 and 5.');
+        console.log('\n❌ Invalid option. Please enter a number between 1 and 6.');
         await pause(rl);
         break;
     }
