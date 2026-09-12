@@ -27,12 +27,13 @@ A lightweight, terminal-based Annual Report Portal for academic departments buil
 
 ### 2. System Administrator (`ADMIN`)
 * **Review Submissions:** Inspect pending departmental reports, review section details, and approve or reject with written feedback.
-* **Institute Analytics Engine:** Real-time aggregation of:
+* **Institute Analytics Engine:** Real-time aggregation of approved departmental reports:
   * Total institute enrollment and annual intake.
   * Total faculty and PhD qualifications.
   * Total publication counts across departments.
   * Overall placement rate (%), average LPA, and highest package.
-* **Consolidated Annual Report Generator:** Builds and prints clean summary reports for executive review.
+* **Report Customization & Ordering:** Customize which predefined sections to include in the annual report and define their display sequence.
+* **Final Annual Report Generator:** Generates and exports official institute annual report documents (`reports/annual-report-<yearLabel>.txt`) based strictly on approved departmental submissions.
 
 ---
 
@@ -53,6 +54,7 @@ A lightweight, terminal-based Annual Report Portal for academic departments buil
 * `users`: User accounts (`id`, `username`, `passwordHash`, `fullName`, `role`, `departmentId`, `createdAt`).
 * `reports`: Report submissions (`id`, `departmentId`, `academicYearId`, `status`, `feedback`, `submittedAt`, `createdBy`).
 * `reportSections`: Modular report sections (`id`, `reportId`, `sectionName`, `sectionData`, `updatedAt`).
+* `reportCustomization`: Predefined section customization (`sectionName`, `displayName`, `selected`, `order`).
 
 ---
 
@@ -65,13 +67,15 @@ npm start
 
 ### 2. Run Automated Test Suites
 ```bash
-# Run all automated tests (storage, auth, ui, reports, admin)
+# Run all automated tests (storage, auth, ui, reports, admin, customization, final-report)
 npm test
 
 # Run individual test suites
-npm run test:storage   # JSON file persistence & query helpers
-npm run test:auth      # Authentication & RBAC security
-npm run test:ui        # Terminal UI formatters
-npm run test:reports   # Report drafting, section editing & submission checks
-npm run test:admin     # Admin reviews & institute analytics aggregation
+npm run test:storage        # JSON file persistence & query helpers
+npm run test:auth           # Authentication & RBAC security
+npm run test:ui             # Terminal UI formatters
+npm run test:reports        # Report drafting, section editing & submission checks
+npm run test:admin          # Admin reviews & institute analytics aggregation
+npm run test:customization  # Report section selection and ordering
+npm run test:final-report   # Final annual report text generation & export
 ```
