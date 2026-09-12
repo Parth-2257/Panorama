@@ -132,6 +132,12 @@ function getDefaultData() {
         },
         updatedAt: '2026-09-03T10:00:00.000Z'
       }
+    ],
+    reportCustomization: [
+      { sectionName: 'students', displayName: 'Students', selected: true, order: 1 },
+      { sectionName: 'faculty', displayName: 'Faculty', selected: true, order: 2 },
+      { sectionName: 'researchPapers', displayName: 'Research Papers', selected: true, order: 3 },
+      { sectionName: 'placements', displayName: 'Placements', selected: true, order: 4 }
     ]
   };
 }
@@ -152,20 +158,28 @@ async function ensureDataFile() {
 
 /**
  * Reads and returns the complete JSON data object.
- * @returns {Promise<{ departments: Array, academicYears: Array, users: Array, reports: Array, reportSections: Array }>}
+ * @returns {Promise<{ departments: Array, academicYears: Array, users: Array, reports: Array, reportSections: Array, reportCustomization: Array }>}
  */
 async function readData() {
   await ensureDataFile();
   const raw = await fs.readFile(DATA_FILE_PATH, 'utf8');
   try {
     const data = JSON.parse(raw);
-    // Ensure all 5 foundation collections exist
+    // Ensure all foundation collections exist
     return {
       departments: Array.isArray(data.departments) ? data.departments : [],
       academicYears: Array.isArray(data.academicYears) ? data.academicYears : [],
       users: Array.isArray(data.users) ? data.users : [],
       reports: Array.isArray(data.reports) ? data.reports : [],
       reportSections: Array.isArray(data.reportSections) ? data.reportSections : [],
+      reportCustomization: Array.isArray(data.reportCustomization)
+        ? data.reportCustomization
+        : [
+            { sectionName: 'students', displayName: 'Students', selected: true, order: 1 },
+            { sectionName: 'faculty', displayName: 'Faculty', selected: true, order: 2 },
+            { sectionName: 'researchPapers', displayName: 'Research Papers', selected: true, order: 3 },
+            { sectionName: 'placements', displayName: 'Placements', selected: true, order: 4 }
+          ],
     };
   } catch (err) {
     throw new Error(`Failed to parse data.json: ${err.message}`);
